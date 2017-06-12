@@ -5,7 +5,7 @@
 https://github.com/tsmyk0715/tsmyk0715/raw/master/images/login.png
 
 主界面：
-https://github.com/tsmyk0715/tsmyk0715/raw/master/images/mian.png
+https://github.com/tsmyk0715/tsmyk0715/raw/master/images/main.png
 
 内容界面：
 https://github.com/tsmyk0715/tsmyk0715/raw/master/images/content.png
