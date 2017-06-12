@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+			"http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+
+<mapper namespace="dao.OrderDao">
+	<resultMap type="pojo.Orders" id="resultOrder">
+		<id column="id" property="id"/>
+		<result column="number" property="number"/>
+		<result column="clientId" property="clientId"/>
+		<result column="goodsId" property="goodsId"/>
+		<result column="goodsNum" property="goodsNum"/>
+		<result column="orderTime" property="orderTime"/>
+		<result column="sendTime" property="sendTime"/>
+		<result column="payType" property="payType"/>
+		<result column="description" property="description"/>
+	</resultMap>
+	
+	<sql id="orderSql">
+		id,number,clientId,goodsId,goodsNum,orderTime,sendTime,payType,description,userid
+	</sql>
+	
+	<select id="queryAllOrders" resultMap="resultOrder" parameterType="int">
+		select <include refid="orderSql"/> from orders o 
+		<where>
+			<if test="_parameter != null and _parameter != ''">
+				o.userid = #{_parameter}
+			</if>
+		</where>
+	</select>
+	
+	<select id="queryAllOrderByParam" parameterType="int" resultType="java.util.Map">
+		 select 
+		 	o.id, 
+		 	o.number, 
+		 	o.clientId, 
+		 	o.goodsId, 
+		 	o.goodsNum, 
+		 	o.orderTime, 
+		 	o.sendTime, 
+		 	o.payType, 
+		 	o.description, 
+		 	c.customername, 
+		 	g.name, 
+		 	g.size
+		 from 
+		 	orders o, 
+		 	customer c, 
+		 	goods g 
+		 where 
+		 	o.clientId = c.id  
+		 and 
+		 	o.goodsId = g.id  
+		 and 
+		    o.userid = #{_parameter}
+	</select>
+	<select id="queryAllOrdersByAdmin" resultType="java.util.Map">
+		 select 
+		 	o.id, 
+		 	o.number, 
+		 	o.clientId, 
+		 	o.goodsId, 
+		 	o.goodsNum, 
+		 	o.orderTime, 
+		 	o.sendTime, 
+		 	o.payType, 
+		 	o.description, 
+		 	c.customername, 
+		 	g.name, 
+		 	g.size, 
+		 	o.userid 
+		 from 
+		 	orders o, 
+		 	customer c, 
+		 	goods g 
+		 where 
+		 	o.clientId = c.id  
+		 and 
+		 	o.goodsId = g.id 
+	</select>
+	
+	
+	
+	<select id="queryOrderByParamMap" parameterType="java.util.Map" 
+			resultType="java.util.Map">
+		select 
+		 	o.id, 
+		 	o.number, 
+		 	o.clientId, 
+		 	o.goodsId, 
+		 	o.goodsNum, 
+		 	o.orderTime, 
+		 	o.sendTime, 
+		 	o.payType, 
+		 	o.description, 
+		 	c.customername, 
+		 	g.name, 
+		 	g.size 
+		 from 
+		 	orders o, 
+		 	customer c, 
+		 	goods g 
+		 <where>
+			 o.clientId = c.id  and o.goodsId = g.id
+			<if test="number != null and number != ''">
+			 	 and o.number = #{number} 
+			 </if>	
+			 <if test="orderTime != null and orderTime != ''">
+			 	 and o.orderTime = #{orderTime}
+			 </if>
+			 <if test="sendTime != null and sendTime != ''">
+			 	 and o.sendTime = #{sendTime}
+			 </if>
+			 <if test="payType != null and payType != ''">
+			 	 and o.payType = #{payType}
+			 </if>
+			 <if test="clientName != null and clientName != ''">
+			 	 and c.customername = #{clientName}
+			 </if>
+			 <if test="goodsName != null and goodsName != ''">
+			 	 and g.name = #{goodsName}
+			 </if>
+			 <if test="userid != null and userid != ''">
+			 	  and o.userid = #{userid}
+			 </if>
+		 </where> 
+	</select>
+	
+	
+	<select id="getTotalCount" parameterType="int" resultType="int">
+		select count(*) from orders o 
+		<where>
+			<if test="_parameter != null and _parameter != ''">
+				o.id = #{_parameter}
+			</if>
+		</where>
+	</select>
+	
+	<insert id="addOrderAction" parameterType="pojo.Orders">
+		insert into orders 
+			(number,clientId,goodsId,goodsNum,orderTime,
+				sendTime,payType,description,userid) 
+		values(#{o.number},#{o.clientId},#{o.goodsId},#{o.goodsNum},
+			   #{o.orderTime},#{o.sendTime},#{o.payType},
+			   #{o.description},#{o.userId})
+	</insert>
+	
+	<delete id="deleteOrders" parameterType="java.util.List">
+		delete from orders where id in 
+		<foreach collection="list" item="item" index="index" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	
+	<update id="editOrdersInformarion" parameterType="java.util.Map">
+		update orders o set 
+		<if test="number != null and number != ''">
+			 o.number = #{number,jdbcType=VARCHAR} 
+		</if>
+		<if test="goodsNum != null and goodsNum != ''">
+			 , o.goodsNum = #{goodsNum,jdbcType=VARCHAR} 
+		</if>
+		<if test="sendTime != null and sendTime != ''">
+			 , o.sendTime = #{sendTime,jdbcType=VARCHAR} 
+		</if>
+		<if test="payType != null and payType != ''">
+			 , o.payType = #{payType,jdbcType=VARCHAR} 
+		</if>
+		<if test="desc != null and desc != ''">
+			 , o.description = #{desc,jdbcType=VARCHAR} 
+		</if>
+		<where>
+			  o.id = #{id}
+		</where>
+		
+	</update>
+	
+</mapper>

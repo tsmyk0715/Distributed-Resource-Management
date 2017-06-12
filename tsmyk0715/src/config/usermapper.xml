@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+			"http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+			
+<mapper namespace="dao.UserDao">
+	
+	<resultMap type="pojo.User" id="resultUser">
+		<id column="id" property="id"/>
+		<result column="account" property="account"/>
+		<result column="password" property="password"/>
+		<result column="username" property="username"/>
+	</resultMap>
+	
+	<sql id="user">id,account,password,username</sql>
+	
+	<select id="queryAllUser" resultMap="resultUser">
+		select * from user
+	</select>
+	
+	<select id="queryAllUser_Role"  resultType="java.util.Map">
+		select 
+			u.id, 
+			u.account,
+			u.username,
+			u.password,
+			r.roleName 
+		from 
+			user u, 
+			role r, 
+			user_role ur 
+		where 
+			u.id = ur.userId 
+		and 
+			r.roleId = ur.roleId;
+	</select>
+	
+	
+	<select id="queryUserById" parameterType="int" resultMap="resultUser">
+		select <include refid="user"/> from user u
+		<where>
+			<if test="_parameter != null and _parameter != ''">
+				u.account=#{_parameter}
+			</if>
+		</where>
+	</select>
+	
+	<select id="queryUserById2" parameterType="int" resultMap="resultUser">
+		select <include refid="user"/> from user u
+		<where>
+			<if test="_parameter != null and _parameter != ''">
+				u.id=#{_parameter}
+			</if>
+		</where>
+	</select>
+	
+	<select id="queryUserByParamMap" parameterType="java.util.Map" resultType="java.util.Map">
+		select 
+			u.id, 
+			u.account,
+			u.username,
+			u.password,
+			r.roleName 
+		from 
+			user u, 
+			role r, 
+			user_role ur 
+		where 
+			u.id = ur.userId 
+		and 
+			r.roleId = ur.roleId
+			<if test="account != null and account != ''">
+				 and u.account = #{account}
+			</if>
+			<if test="name != null and name != ''">
+				 and u.username = #{name}
+			</if>
+	</select>
+	
+	<select id="getTotalCount" resultType="int">
+		select count(*) from user
+	</select>
+	
+	<update id="modifyUser" parameterType="pojo.User">
+		update user u
+		<set>    
+			<if test="username != null and username != ''">
+				 u.username = #{username} 
+			</if>
+			<if test="password != null and password != ''">
+				  , u.password = #{password} 
+			</if>
+		</set>
+		<where>
+		     u.id=#{id}
+		</where>
+	</update>
+	
+	<insert id="addUser" parameterType="pojo.User">
+		insert into user (account,password,username) 
+		values(#{user.account,jdbcType=VARCHAR}, 
+			   #{user.password,jdbcType=VARCHAR}, 
+			   #{user.username,jdbcType=VARCHAR})
+	</insert>
+	
+	<select id="getMaxUserId" resultType="int">
+		select max(id) from user 
+	</select>
+	
+	<insert id="insert_user_role" parameterType="java.util.Map">
+		insert into user_role (userId,roleId) values(#{userId},#{roleId})
+	</insert>
+	
+	<delete id="deleteUsers" parameterType="java.util.List">
+		delete from user where id in
+		<foreach collection="list" item="item" index="index" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+		
+	<update id="fixPassword" parameterType="java.util.Map">
+		update user u 
+		<set>
+			<if test="username != null and username != ''">
+				u.username = #{username}, 
+			</if>
+			<if test="password != null and password != ''">
+				u.password = #{password} 
+			</if>
+		</set>
+		<where>
+			 u.id = #{id}
+		</where>
+	</update>
+</mapper>

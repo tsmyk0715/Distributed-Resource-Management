@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+						http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/context  
+            			http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+
+	<context:component-scan base-package="dao"></context:component-scan>
+	<context:component-scan base-package="inf"></context:component-scan>
+	<context:component-scan base-package="service"></context:component-scan>
+
+	<context:property-placeholder location="classpath:jdbc.properties"/>
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="driverClass" value="${driver}"/>
+        <property name="jdbcUrl" value="${url}"/>
+        <property name="user" value="${user}"/>
+        <property name="password" value="${password}"/>
+		
+		<property name="initialPoolSize" value="10" />
+		<property name="maxPoolSize" value="30" />
+		<!--关闭连接后不自动 commit -->
+		<property name="autoCommitOnClose" value="false" />
+		<!--当 maxPoolSize 用完的时候，等待的时间 -->
+		<property name="checkoutTimeout" value="5000" />
+		<!--当获取连接失败是重复的次数 -->
+		<property name="acquireRetryAttempts" value="2" />
+	</bean>
+
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="configLocation" value="classpath:MyBatis-Configuration.xml"></property>
+		<property name="dataSource" ref="dataSource" />
+		<property name="plugins">
+			<array>
+				<bean class="com.github.pagehelper.PageInterceptor">
+					<property name="properties">
+						<value>
+							helperDialect=mysql
+						</value>
+					</property>
+				</bean>
+			</array>
+		</property>
+	</bean>
+</beans>

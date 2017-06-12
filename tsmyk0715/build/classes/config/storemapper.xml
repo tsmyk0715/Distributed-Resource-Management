@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+			"http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+
+<mapper namespace="dao.StoreDao">
+
+	<resultMap type="pojo.Goods" id="resultGoods">
+		<id property="id" column="id"/>
+		<result property="number" column="number"/>
+		<result property="name" column="name"/>
+		<result property="productPlace" column="productplace"/>
+		<result property="size" column="size"/>
+		<result property="goodsPackage" column="package"/>
+		<result property="productCode" column="productcode"/>
+		<result property="promitCode" column="promitcode"/>
+		<result property="price" column="price"/>
+		<result property="goodsNum" column="goodsNum"/>
+		<result property="available" column="available"/>
+		<result property="description" column="description"/>
+		<result property="userId" column="userid"/>
+	</resultMap>
+		
+	<!-- 查询所有商品 -->
+	<sql id="goods">
+		id,number,name,productplace,size,package,productcode,
+		promitcode,price,goodsNum,available,description,userid
+	</sql>
+	
+	<select id="queryAllGoods" resultMap="resultGoods">
+		select <include refid="goods"/> from goods
+	</select>
+	
+	<select id="queryGoodsByUserId" parameterType="int" resultMap="resultGoods">
+		select <include refid="goods"/> from goods where userid =  #{_parameter}
+	</select>
+	
+	<select id="queryGoodsByGoodsName" parameterType="string" resultMap="resultGoods">
+		select <include refid="goods"/> from goods g 
+		<where>
+			<if test="goodsName != null and goodsName != ''">
+				g.name = #{goodsName}
+			</if>
+		</where>
+	</select>
+	
+	<select id="queryByParam" parameterType="java.util.Map" resultMap="resultGoods">
+		select <include refid="goods"/> from goods g
+		<where>
+			1 = 1
+			<if test="number != null and number != ''">
+				 and g.number = #{number}  
+			</if>
+			<if test="name != null and name != ''">
+				 and g.name like '%${name}%'  
+			</if>
+			<if test="place != null and place != ''">
+				 and g.productplace like '%${place}%' 
+			</if>
+			<if test="userid != null and userid != ''">
+				 and g.userid = #{userid}
+			</if>
+		</where>
+	</select>
+	
+	<!-- 查询所有出库单 -->
+	<select id="queryAllStockOut" resultType="java.util.Map" parameterType="int">
+		 select 
+		 	s.id, 
+		 	s.number, 
+		 	s.clientId,  
+		 	s.goodsId, 
+		 	s.goodsNumber, 
+		 	s.outTime, 
+		 	s.description,  
+		 	c.customername, 
+		 	g.name, 
+		 	g.size 
+		 from 
+		 	stock_out_sheet s, 
+		 	customer c, 
+		 	goods g  
+		 where  
+		 	s.clientId=c.id 
+		 and 
+		 	s.goodsId=g.id 
+		 and 
+		 	s.userid = #{_parameter}
+	</select>
+	
+	<select id="queryStockOutByParam" parameterType="java.util.Map" resultType="java.util.Map">
+		 select 
+		 	s.id, 
+		 	s.number, 
+		 	s.clientId,  
+		 	s.goodsId, 
+		 	s.goodsNumber, 
+		 	s.outTime, 
+		 	s.description,  
+		 	c.customername, 
+		 	g.name, 
+		 	g.size, 
+		 	s.userid 
+		 from 
+		 	stock_out_sheet s, 
+		 	customer c, 
+		 	goods g  
+		 where  
+		 	s.clientId=c.id 
+		 and 
+		 	s.goodsId=g.id
+		 and 
+		 	s.userid = #{userid}
+		<if test="number != null and number != ''">
+			 and s.number = #{number}  
+		</if>
+		<if test="clientName != null and clientName != ''">
+			 and c.customername like '%${clientName}%'  
+		</if>
+		<if test="goodsName != null and goodsName != ''">
+			 and g.name like '%${name}%' 
+		</if>	
+	</select>
+	
+	<select id="queryAllCountStockOut" resultType="int">
+		select count(*) from stock_out_sheet
+	</select>
+	
+	<update id="editStockOutInfo" parameterType="java.util.Map">
+		update stock_out_sheet s set 
+		<if test="goodsNum != null and goodsNum != ''">
+			 s.goodsNumber = #{goodsNum}  
+		</if>
+		<if test="desc != null and desc != ''">
+			 , s.description = #{desc} 
+		</if>
+		where s.id = #{id} 
+	</update>
+	
+
+	<delete id="deleteStockOut" parameterType="java.util.List">
+		delete from stock_out_sheet where id in
+		<foreach collection="list" item="item" index="index" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	
+	<insert id="addStockOutProcess" parameterType="dto.AddStockOut">
+		insert into 
+			stock_out_sheet 
+				(number,clientId,goodsId,goodsNumber,outTime,description,userid) 
+		values 
+			(#{aso.number},${aso.clientId},#{aso.goodsId},#{aso.goodsNum},
+				#{aso.date},#{aso.desc},#{aso.userid})
+	</insert>
+	
+	<insert id="processAddGoods" parameterType="pojo.Goods">
+		insert into goods 
+			(number,name,productplace,size,package,productcode,promitcode,price,goodsNum,available,description,userid)
+		values(#{g.number},#{g.name},#{g.productPlace},#{g.size},
+			   #{g.goodsPackage},#{g.productCode},#{g.promitCode},#{g.price},#{g.goodsNum},
+			   #{g.available},#{g.description},#{g.userId})
+	</insert>
+	
+	<!-- 更新商品信息 -->
+	<update id="editGoodsInfo" parameterType="java.util.Map">
+		update goods g set 
+		<if test="number != null and number != ''">
+			g.number = #{number} 
+		</if>
+		<if test="goodsName != null and goodsName != ''">
+			 , g.name = #{goodsName}
+		</if>
+		<if test="productPlace != null and productPlace != ''">
+			 , g.productplace = #{productPlace}
+		</if>
+		<if test="goodsSize != null and goodsSize != ''">
+			 , g.size = #{goodsSize}
+		</if>
+		<if test="price != null and price != ''">
+			 , g.price = #{price} 
+		</if>
+		<if test="goodsNum != null and goodsNum != ''">
+			 , g.goodsNum = #{goodsNum} 
+		</if>
+		<if test="desc != null and desc != ''">
+			 , g.description = #{desc} 
+		</if>
+		<where>
+			 g.id = #{id}
+		</where>      
+	</update>
+	<update id="editGoodsInfoaaaaa" parameterType="java.util.Map">
+		update goods g set 
+		<if test="number != null and number != ''">
+			 g.number = #{number, jdbcType="VARCHAR"} 
+		</if>
+		<if test="goodsName != null and goodsName != ''">
+			 , g.name = #{goodsName, jdbcType="VARCHAR"} 
+		</if>
+		<if test="productPlace != null and productPlace != ''">
+			 , g.productplace = #{productPlace, jdbcType="VARCHAR"} 
+		</if>
+		<if test="size != null and size != ''">
+			 , g.size = #{size, jdbcType="VARCHAR"} 
+		</if>
+		<if test="price != null and price != ''">
+			 , g.price = #{price, jdbcType="VARCHAR"} 
+		</if>
+		<if test="goodsNum != null and goodsNum != ''">
+			 , g.goodsNum = #{goodsNum, jdbcType="VARCHAR"} 
+		</if>
+		<if test="desc != null and desc != ''">
+			 , g.description = #{desc, jdbcType="VARCHAR"} 
+		</if>
+		<where>
+			  g.id = #{id, jdbcType="int"} 
+		</where>
+	</update>
+	
+	<delete id="deleteGoods" parameterType="java.util.List">
+		delete from goods where id in 
+		<foreach collection="list" item="item" index="index" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+</mapper>

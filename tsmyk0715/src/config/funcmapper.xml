@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+			"http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+			
+<mapper namespace="dao.FuncDao">
+	
+	<resultMap type="pojo.Function" id="resultFunction">
+		<id column="funId" property="funId"/>
+		<result column="funHref" property="funHref"/>
+		<result column="funValue" property="funValue"/>
+		<result column="parentId" property="parentId"/>
+	</resultMap>
+	
+	<sql id="function">funId,funHref,funValue,parentId</sql>
+	
+	<select id="queryFunctionByRoleId" parameterType="int" resultMap="resultFunction">
+		select <include refid="function"/> from function where funId in 
+		(select funId from role_funC where roleId=#{_parameter}) order by funId asc
+	</select>
+	
+</mapper>

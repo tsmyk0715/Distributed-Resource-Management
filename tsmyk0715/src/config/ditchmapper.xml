@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+			"http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+
+<mapper namespace="dao.DitchDao">
+	<resultMap type="pojo.Customer" id="resultCustomer">
+		<id property="id" column="id"/>
+		<result property="number" column="number"/>
+		<result property="customerName" column="customername"/>
+		<result property="postCode" column="postcode"/>
+		<result property="address" column="address"/>
+		<result property="telephone" column="telephone"/>
+		<result property="connectPerson" column="connectperson"/>
+		<result property="phone" column="phone"/>
+		<result property="bank" column="bank"/>
+		<result property="account" column="account"/>
+		<result property="email" column="email"/>
+		<result property="fax" column="fax"/>
+		<result property="description" column="description"/>
+		<result property="userId" column="userid"/>
+	</resultMap>
+	
+	<sql id="customer">
+		id,number,customername,postcode,address,telephone,connectperson,
+		phone,bank,account,email,fax,description,userid
+	</sql>
+	<select id="queryAllCustomer" resultMap="resultCustomer">
+		select <include refid="customer"/> from customer
+	</select>
+		
+	<select id="queryCustomersByUserId" parameterType="int" resultMap="resultCustomer">
+		select <include refid="customer"/> from customer c 
+		<where>
+			<if test="_parameter != null and _parameter != ''">
+				c.userid = #{_parameter}
+			</if>
+		</where>
+	</select>
+		
+	<select id="queryCustomerByCusetomerName" parameterType="string" resultMap="resultCustomer">
+		select <include refid="customer"/> from customer c 
+		<where>
+			<if test="customerName != null and customerName != ''">
+				c.customername = #{customerName}
+			</if>
+		</where>
+	</select>
+	
+	<select id="queryCustomersByParamMap" parameterType="java.util.Map" resultMap="resultCustomer">
+		select <include refid="customer"/> from customer c 
+		<where>
+			1=1
+			<if test="number != null and number != ''">
+				 and c.number = #{number}
+			</if>
+			<if test="clientName != null and clientName != ''">
+				 and c.customername = #{clientName}
+			</if>
+			<if test="address != null and address != ''">
+				 and c.address = #{address}
+			</if>
+			<if test="telephone != null and telephone != ''">
+				 and c.telephone = #{telephone}
+			</if>
+			<if test="connectPerson != null and connectPerson != ''">
+				 and c.connectperson = #{connectPerson}
+			</if>
+			<if test="email != null and email != ''">
+				 and c.email = #{email}
+			</if>
+			<if test="userid != null and userid != ''">
+				 and c.userid = #{userid}
+			</if>
+		</where>
+	</select>
+	
+	 <update id="editClientInfo" parameterType="java.util.Map">
+		update customer c set 
+		<if test="address != null and address != ''">
+			 c.address = #{address}
+		</if>
+		<if test="telephone != null and telephone != ''">
+			 , c.telephone = #{telephone}
+		</if>
+		<if test="connectPerson != null and connectPerson != ''">
+			 ,c.connectperson = #{connectPerson}
+		</if>
+		<if test="phone != null and phone != ''">
+			 , c. phone = #{phone}
+		</if>
+		<if test="email != null and email != ''">
+			 , c.email = #{email}
+		</if>
+		<if test="fax != null and fax != ''">
+			 , c.fax = #{fax}
+		</if>
+		<if test="description != null and description != ''">
+			 , c.description = #{description}
+		</if>
+		<where>
+			 c.id = #{id}
+		</where>
+	</update> 
+		
+	<delete id="deleteClient" parameterType="java.util.List">
+		delete from customer where id in
+		<foreach collection="list" item="item" index="index" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>	
+	
+	<insert id="addClientInfo" parameterType="pojo.Customer">
+		insert into customer 
+			(number,customername,postcode,address,telephone,connectperson,
+				phone,bank,account,email,fax,description,userid) 
+		values (#{c.number},#{c.customerName},#{c.postCode},#{c.address},
+				#{c.telephone},#{c.connectPerson},#{c.phone},#{c.bank},
+				#{c.account},#{c.email},#{c.fax},#{c.description},#{c.userId})
+	</insert>
+	
+	<!-- 分消费的计算 -->
+	<select id="ditchCostCount" parameterType="int" resultType="java.util.Map">
+		select 
+			o.id, 
+			o.number, 
+			c.customername, 
+			g.name, 
+			g.size, 
+			g.price, 
+			o.goodsNum, 
+			o.goodsNum * g.price as 'truePay', 
+			o.fandian, 
+			o.goodsNum*g.price * o.fandian / 100 as 'fandianjine',
+			(o.goodsNum*g.price) - ((o.goodsNum*g.price) * o.fandian / 100) as 'shijifukuan'
+		from 
+			orders o, 
+			customer c, 
+			goods g 
+		where 
+			o.clientId = c.id 
+		and 
+			o.goodsId = g.id 
+			<if test="_parameter != null and _parameter != ''">
+			  and  o.userid = #{_parameter}
+			</if>
+	</select>
+	
+	<select id="ditchCostCountSearch" parameterType="java.util.Map" resultType="java.util.Map">
+		select 
+			o.id, 
+			o.number, 
+			c.id, 
+			c.customername, 
+			g.name, 
+			g.size, 
+			g.price, 
+			g.id, 
+			o.goodsNum, 
+			o.goodsNum * g.price as 'truePay', 
+			o.fandian, 
+			o.goodsNum*g.price * o.fandian / 100 as 'fandianjine',
+			(o.goodsNum*g.price) - ((o.goodsNum*g.price) * o.fandian / 100) as 'shijifukuan'
+		from 
+			orders o, 
+			customer c, 
+			goods g 
+		where 
+			o.clientId = c.id 
+		and 
+			o.goodsId = g.id 
+			<if test="start_yingfu != null and start_yingfu != ''">
+				 and (o.goodsNum * g.price) <![CDATA[>=]]> #{start_yingfu}
+			</if>
+			<if test="end_yingfu != null and end_yingfu != ''">
+				 and (o.goodsNum * g.price) <![CDATA[<=]]> #{end_yingfu}
+			</if>	
+					
+			<if test="start_fandian != null and start_fandian != ''">
+				 and (o.goodsNum*g.price * o.fandian / 100) <![CDATA[>=]]> #{start_fandian}
+			</if>
+			<if test="end_fandian != null and end_fandian != ''">
+				 and (o.goodsNum*g.price * o.fandian / 100) <![CDATA[<=]]> #{end_fandian}
+			</if>
+			
+			<if test="start_shiji != null and start_shiji != ''">
+				 and ((o.goodsNum*g.price) - ((o.goodsNum*g.price) * o.fandian / 100)) <![CDATA[>=]]> #{start_shiji}
+			</if>
+			<if test="end_shiji != null and end_shiji != ''">
+				 and ((o.goodsNum*g.price) - ((o.goodsNum*g.price) * o.fandian / 100)) <![CDATA[<=]]> #{end_shiji}
+			</if>
+			<if test="userid != null and userid != ''">
+			   and  o.userid = #{userid}
+			</if>
+	</select>
+	
+	<update id="editFanDian" parameterType="java.util.Map">
+		update orders o set 
+		<if test="fanDianValue != null and fanDianValue != ''">
+			o.fandian = #{fanDianValue} 
+		</if>
+		<where>
+			<if test="orderId != null and orderId != ''">
+				o.id = #{orderId}
+			</if>
+		</where>
+	</update>
+	
+</mapper>

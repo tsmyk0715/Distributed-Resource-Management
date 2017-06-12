@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+			"http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+
+<mapper namespace="dao.DataDao">
+	
+	<sql id="commonSql">
+		 select 
+		 	o.id, 
+		 	o.number, 
+		 	o.clientId, 
+		 	o.goodsId, 
+		 	o.goodsNum, 
+		 	o.orderTime, 
+		 	o.sendTime, 
+		 	o.payType, 
+		 	o.description, 
+		 	c.customername, 
+		 	g.name, 
+		 	g.size
+		 from 
+		 	orders o, 
+		 	customer c, 
+		 	goods g 
+		 where 
+		 	o.clientId = c.id  
+		 and 
+		 	o.goodsId = g.id  
+		 and 
+		    o.userid = #{_parameter}
+	</sql>
+	
+	<select id="januaryOrder" parameterType="int" resultType="java.util.Map">
+		<include refid="commonSql"/> and month(cast(orderTime as date))=1
+	</select>
+	
+	<select id="februaryOrder" parameterType="int" resultType="java.util.Map">
+		 <include refid="commonSql"/>  and  month(cast(orderTime as date))=2 
+	</select>
+	
+	<select id="marchOrder" parameterType="int" resultType="java.util.Map">
+		 <include refid="commonSql"/> and month(cast(orderTime as date))=3   
+	</select>
+	
+	<select id="arpilOrder" parameterType="int" resultType="java.util.Map">
+		 <include refid="commonSql"/>  and month(cast(orderTime as date))=4  
+	</select>
+	
+	<select id="mayOrder" parameterType="int" resultType="java.util.Map">
+		 <include refid="commonSql"/>  and month(cast(orderTime as date))=5  
+	</select>
+	
+	<select id="juneOrder" parameterType="int" resultType="java.util.Map">
+		 <include refid="commonSql"/>  and month(cast(orderTime as date))=6  
+	</select>
+	
+	<select id="julyOrder" parameterType="int" resultType="java.util.Map">
+		 <include refid="commonSql"/> and month(cast(orderTime as date))=7  
+	</select>
+
+	<select id="augustOrder" parameterType="int" resultType="java.util.Map">
+		 <include refid="commonSql"/> and month(cast(orderTime as date))=8  
+	</select>
+	
+	<select id="septemberOrder" parameterType="int" resultType="java.util.Map">
+		 <include refid="commonSql"/> and month(cast(orderTime as date))=9
+	</select>
+	
+	<select id="octoberOrder" parameterType="int" resultType="java.util.Map">
+		  <include refid="commonSql"/> and month(cast(orderTime as date))=10 
+	</select>
+	
+	<select id="novemberOrder" parameterType="int" resultType="java.util.Map">
+		  <include refid="commonSql"/> and month(cast(orderTime as date))=11 
+	</select>
+	
+	<select id="decemberOrder" parameterType="int" resultType="java.util.Map">
+		  <include refid="commonSql"/> and month(cast(orderTime as date))=12
+	</select>
+	
+	<select id="firstQuarterOrder" parameterType="int" resultType="java.util.Map">
+		  <include refid="commonSql"/> and month(cast(orderTime as date)) in (1,2,3) 
+	</select>
+	
+	<select id="secondQuarterOrder" parameterType="int" resultType="java.util.Map">
+		  <include refid="commonSql"/> and  month(cast(orderTime as date)) in (4,5,6) 
+	</select>
+	
+	<select id="thirdQuarterOrder" parameterType="int" resultType="java.util.Map">
+		  <include refid="commonSql"/> and  month(cast(orderTime as date)) in (7,8,9) 
+	</select>
+	
+	<select id="fourthQuarterOrder" parameterType="int" resultType="java.util.Map">
+		  <include refid="commonSql"/> and month(cast(orderTime as date)) in (10,11,12) 
+	</select>
+
+	<!-- 分销商库存报表 -->
+	<select id="storeChectSheet" parameterType="int" resultType="java.util.Map">
+		select 
+			g.id , 
+			g.number , 
+			g.name , 
+			g.productplace , 
+			g.size , 
+			g.price , 
+			g.goodsNum  as 'originalStore' , 
+			ifnull(sum(o.goodsNum),0) as 'goodsOrderNumber', 
+			(g.goodsNum-ifnull(sum(o.goodsNum),0)) as 'surplusStore', 
+			(g.price * ifnull(g.goodsNum,0)) as 'originalMoney', 
+			(g.price * (g.goodsNum-ifnull(sum(o.goodsNum),0))) as 'surplsMoney' 
+		from 
+			goods g 
+		left join 
+			orders o 
+		on  
+			g.id = o.goodsId 
+	    where 
+	    	g.userid = #{_parameter} 
+	    group by 
+	    	g.id 
+	    order by 
+	    	g.id;
+	</select>
+	
+	<!-- 管理员查询所有分销商库存报表 -->
+	<select id="allStoreChectSheet" resultType="java.util.Map">
+		select 
+			g.id , 
+			g.number , 
+			g.name , 
+			g.productplace , 
+			g.size , 
+			g.price , 
+			g.userid,
+			g.goodsNum  as 'originalStore' , 
+			ifnull(sum(o.goodsNum),0) as 'goodsOrderNumber', 
+			(g.goodsNum-ifnull(sum(o.goodsNum),0)) as 'surplusStore', 
+			(g.price * ifnull(g.goodsNum,0)) as 'originalMoney', 
+			(g.price * (g.goodsNum-ifnull(sum(o.goodsNum),0))) as 'surplsMoney' 
+		from 
+			goods g 
+		left join 
+			orders o 
+		on  
+			g.id = o.goodsId  
+	    group by 
+	    	g.id 
+	    order by 
+	    	g.id 
+	</select>
+	
+	
+</mapper>

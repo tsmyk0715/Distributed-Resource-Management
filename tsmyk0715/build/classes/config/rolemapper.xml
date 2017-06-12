@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+			"http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+			
+<mapper namespace="dao.RoleDao">
+	
+	<resultMap type="pojo.Role" id="resultRole">
+		<id column="roleId" property="roleId"/>
+		<result column="roleName" property="roleName"/>
+	</resultMap>
+	
+	<sql id="role">roleId,roleName</sql>
+	
+	<select id="queryAllRole" resultMap="resultRole">
+		select <include refid="role"/> from role
+	</select>
+	
+	<select id="queryRoleByUserId" parameterType="int" resultMap="resultRole">
+		select <include refid="role"/> from role where roleId=(
+		select roleId from user_role where userId=#{_parameter})
+	</select>
+	
+</mapper>
